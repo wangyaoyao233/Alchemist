@@ -1,6 +1,6 @@
 package main
 
-import "Alchemist/net"
+import net "Alchemist/anet"
 
 //服务端应用程序
 func main() {
