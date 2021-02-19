@@ -1,7 +1,8 @@
-package net
+package anet
 
 import (
 	"Alchemist/iface"
+	"errors"
 	"fmt"
 	"net"
 )
@@ -29,6 +30,18 @@ func NewServer(name string) iface.IServer {
 	return s
 }
 
+//将业务作为回调函数
+func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+	fmt.Println("[Conn Handle] CallBackToClient...")
+
+	//回显业务
+	if _, err := conn.Write(data); err != nil {
+		fmt.Println("write back error: ", err)
+		return errors.New("CallBackToClient error")
+	}
+	return nil
+}
+
 //启动服务器
 func (s *Server) Start() {
 	fmt.Printf("[Start] Server Listen at IP:%s, Port:%d, is starting...\n", s.IP, s.Port)
@@ -49,6 +62,8 @@ func (s *Server) Start() {
 		}
 		fmt.Println("Start server succ ", s.Name)
 
+		var cid uint32
+		cid = 0
 		//3.阻塞的等待客户端连接, 处理客户端连接业务(读写)
 		for {
 			//如果有客户端连接, 阻塞会返回
@@ -58,24 +73,13 @@ func (s *Server) Start() {
 				continue
 			}
 
-			//已经与客户端建立连接, 做一些业务
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					cnt, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("recv buf err", err)
-						continue
-					}
+			//绑定连接的客户端，得到连接模块
+			//func(*net.TCPConn, []byte, int)
+			dealConn := NewConnection(conn, cid, CallBackToClient)
+			cid++
 
-					fmt.Printf("recv client buf %s, cnt %d\n", buf, cnt)
-					//回显
-					if _, err = conn.Write(buf[:cnt]); err != nil {
-						fmt.Println("write back buf err", err)
-						continue
-					}
-				}
-			}()
+			//启动当前的连接
+			go dealConn.Start()
 		}
 	}()
 
