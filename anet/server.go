@@ -2,7 +2,6 @@ package anet
 
 import (
 	"Alchemist/iface"
-	"errors"
 	"fmt"
 	"net"
 )
@@ -17,6 +16,9 @@ type Server struct {
 	IP string
 	//服务器监听的port
 	Port int
+
+	//注册的router
+	Router iface.IRouter
 }
 
 //提供一个初始化Server模块方法
@@ -26,20 +28,9 @@ func NewServer(name string) iface.IServer {
 		IPversion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      9000,
+		Router:    nil,
 	}
 	return s
-}
-
-//将业务作为回调函数
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	fmt.Println("[Conn Handle] CallBackToClient...")
-
-	//回显业务
-	if _, err := conn.Write(data); err != nil {
-		fmt.Println("write back error: ", err)
-		return errors.New("CallBackToClient error")
-	}
-	return nil
 }
 
 //启动服务器
@@ -75,7 +66,7 @@ func (s *Server) Start() {
 
 			//绑定连接的客户端，得到连接模块
 			//func(*net.TCPConn, []byte, int)
-			dealConn := NewConnection(conn, cid, CallBackToClient)
+			dealConn := NewConnection(conn, cid, s.Router)
 			cid++
 
 			//启动当前的连接
@@ -97,4 +88,10 @@ func (s *Server) Serve() {
 
 	//阻塞状态
 	select {}
+}
+
+//添加路由: 给当前的server注册一个路由方法，供客户端的连接使用
+func (s *Server) AddRouter(router iface.IRouter) {
+	s.Router = router
+	fmt.Println("Add Router succ")
 }

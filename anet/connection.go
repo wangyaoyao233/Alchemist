@@ -13,20 +13,21 @@ type Connection struct {
 	ConnID uint32
 	//当前的连接状态(是否已经关闭)
 	isClosed bool
-	//与当前连接说绑定的处理业务的方法
-	handleAPI iface.HandleFunc
 	//等待连接被动退出的channel
 	ExitChan chan bool
+
+	//该连接的Router
+	Router iface.IRouter
 }
 
 //初始化方法
-func NewConnection(conn *net.TCPConn, connID uint32, callback_api iface.HandleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router iface.IRouter) *Connection {
 	c := &Connection{
-		Conn:      conn,
-		ConnID:    connID,
-		handleAPI: callback_api,
-		isClosed:  false,
-		ExitChan:  make(chan bool),
+		Conn:     conn,
+		ConnID:   connID,
+		isClosed: false,
+		ExitChan: make(chan bool),
+		Router:   router,
 	}
 	return c
 }
@@ -40,17 +41,24 @@ func (conn *Connection) StartReader() {
 	for {
 		//读取客户端的数据到buf中
 		buf := make([]byte, 512)
-		cnt, err := conn.Conn.Read(buf)
+		_, err := conn.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err..", err)
 			continue
 		}
 
-		//调用当前连接说绑定的handleAPI
-		if err := conn.handleAPI(conn.Conn, buf, cnt); err != nil {
-			fmt.Println("ConnID:", conn.ConnID, "handle is error ", err)
-			break
+		//得到当前连接的Request请求数据
+		req := Request{
+			conn: conn,
+			data: buf,
 		}
+		//调用注册的路由方法
+		go func(request iface.IRequest) {
+			conn.Router.PreHandle(request)
+			conn.Router.Handle(request)
+			conn.Router.PostHandle(request)
+		}(&req)
+
 	}
 }
 
@@ -81,7 +89,7 @@ func (conn *Connection) Stop() {
 }
 
 //获取当前连接的conn对象(套接字)
-func (conn *Connection) GetTCPConn() *net.TCPConn {
+func (conn *Connection) GetTCPConnection() *net.TCPConn {
 	return conn.Conn
 }
 
@@ -96,4 +104,6 @@ func (conn *Connection) GetRemoteAddr() net.Addr {
 }
 
 //发送数据的方法
-//func (conn *Connection) Send(data []byte) error
+func (conn *Connection) Send(data []byte) error {
+	return nil
+}
