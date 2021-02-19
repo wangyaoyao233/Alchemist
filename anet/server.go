@@ -2,6 +2,7 @@ package anet
 
 import (
 	"Alchemist/iface"
+	"Alchemist/utils"
 	"fmt"
 	"net"
 )
@@ -24,10 +25,10 @@ type Server struct {
 //提供一个初始化Server模块方法
 func NewServer(name string) iface.IServer {
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPversion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      9000,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
 		Router:    nil,
 	}
 	return s
@@ -35,7 +36,8 @@ func NewServer(name string) iface.IServer {
 
 //启动服务器
 func (s *Server) Start() {
-	fmt.Printf("[Start] Server Listen at IP:%s, Port:%d, is starting...\n", s.IP, s.Port)
+	fmt.Printf("[conf] Server Name:%s, IP:%s, Port:%d\n", utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TcpPort)
+	fmt.Printf("[conf] Version:%s, MaxConn:%d, MaxPackageSize:%d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
 
 	go func() {
 		//1.获取一个TCP的Addr

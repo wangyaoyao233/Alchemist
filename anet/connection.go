@@ -2,6 +2,7 @@ package anet
 
 import (
 	"Alchemist/iface"
+	"Alchemist/utils"
 	"fmt"
 	"net"
 )
@@ -40,7 +41,7 @@ func (conn *Connection) StartReader() {
 
 	for {
 		//读取客户端的数据到buf中
-		buf := make([]byte, 512)
+		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
 		_, err := conn.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err..", err)
