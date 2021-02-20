@@ -18,8 +18,15 @@ type Server struct {
 	//服务器监听的port
 	Port int
 
-	//MsgHandle模块
+	//MsgHandle消息管理模块
 	MsgHandler iface.IMsgHandle
+
+	//ConnMgr连接管理模块
+	ConnMgr iface.IConnManager
+
+	//hook函数
+	OnConnStart func(conn iface.IConnection)
+	OnConnStop  func(conn iface.IConnection)
 }
 
 //提供一个初始化Server模块方法
@@ -30,6 +37,7 @@ func NewServer(name string) iface.IServer {
 		IP:         utils.GlobalObject.Host,
 		Port:       utils.GlobalObject.TcpPort,
 		MsgHandler: NewMsgHandle(),
+		ConnMgr:    NewConnManager(),
 	}
 	return s
 }
@@ -69,9 +77,15 @@ func (s *Server) Start() {
 				continue
 			}
 
+			//设置最大的连接个数，如果超过最大连接，那么关闭新的连接
+			if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
+				//TODO 给客户端响应一个最大连接的错误
+				fmt.Println("too many connections MaxConn:", utils.GlobalObject.MaxConn)
+				conn.Close()
+				continue
+			}
 			//绑定连接的客户端，得到连接模块
-			//func(*net.TCPConn, []byte, int)
-			dealConn := NewConnection(conn, cid, s.MsgHandler)
+			dealConn := NewConnection(s, conn, cid, s.MsgHandler)
 			cid++
 
 			//启动当前的连接
@@ -82,7 +96,10 @@ func (s *Server) Start() {
 }
 
 func (s *Server) Stop() {
-	//TODO 将一些服务器的资源, 状态,或者一些已经开辟的连接信息停止或回收
+	//将一些服务器的资源, 状态,或者一些已经开辟的连接信息停止或回收
+	fmt.Println("[Server Stop] server name:", s.Name)
+	//清理连接管理模块
+	s.ConnMgr.Clear()
 }
 
 func (s *Server) Serve() {
@@ -99,4 +116,34 @@ func (s *Server) Serve() {
 func (s *Server) AddRouter(msgID uint32, router iface.IRouter) {
 	s.MsgHandler.AddRouter(msgID, router)
 	fmt.Println("Add Router succ")
+}
+
+//获取ConnMgr连接管理器方法
+func (s *Server) GetConnMgr() iface.IConnManager {
+	return s.ConnMgr
+}
+
+//注册连接之间的hook函数
+func (s *Server) SetOnConnStart(hookFunc func(conn iface.IConnection)) {
+	s.OnConnStart = hookFunc
+}
+
+//注册连接销毁之前的hook函数
+func (s *Server) SetOnConnStop(hookFunc func(conn iface.IConnection)) {
+	s.OnConnStop = hookFunc
+}
+
+//调用hook函数
+func (s *Server) CallOnConnStart(conn iface.IConnection) {
+	if s.OnConnStart != nil {
+		fmt.Println("Call OnConnStart()")
+		s.OnConnStart(conn)
+	}
+
+}
+func (s *Server) CallOnConnStop(conn iface.IConnection) {
+	if s.OnConnStop != nil {
+		fmt.Println("Call OnConnStop()")
+		s.OnConnStop(conn)
+	}
 }

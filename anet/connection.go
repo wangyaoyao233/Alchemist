@@ -10,6 +10,8 @@ import (
 )
 
 type Connection struct {
+	//当前Connection属于哪个Server
+	TcpServer iface.IServer
 	//socket TCP套接字
 	Conn *net.TCPConn
 	//连接的ID
@@ -26,8 +28,9 @@ type Connection struct {
 }
 
 //初始化方法
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMsgHandle) *Connection {
+func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHandler iface.IMsgHandle) *Connection {
 	c := &Connection{
+		TcpServer:  server,
 		Conn:       conn,
 		ConnID:     connID,
 		isClosed:   false,
@@ -35,6 +38,10 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMsgHandle
 		msgChan:    make(chan []byte),
 		MsgHandler: msgHandler,
 	}
+
+	//将conn加入到ConnManager中
+	c.TcpServer.GetConnMgr().Add(c)
+
 	return c
 }
 
@@ -120,6 +127,9 @@ func (conn *Connection) Start() {
 
 	//启动从当前连接的写数据业务
 	go conn.StartWriter()
+
+	//调用注册的OnConnStart hook函数
+	conn.TcpServer.CallOnConnStart(conn)
 }
 
 //停止连接, 结束当前连接的工作
@@ -132,11 +142,17 @@ func (conn *Connection) Stop() {
 	}
 	conn.isClosed = true
 
+	//调用注册的OnConnStop hook函数
+	conn.TcpServer.CallOnConnStop(conn)
+
 	//关闭socket连接
 	conn.Conn.Close()
 
 	//告知Writer关闭
 	conn.ExitChan <- true
+
+	//将当前连接从ConnMgr中移除
+	conn.TcpServer.GetConnMgr().Remove(conn)
 	//回收资源
 	close(conn.ExitChan)
 	close(conn.msgChan)
