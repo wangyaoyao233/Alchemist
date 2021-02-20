@@ -18,18 +18,18 @@ type Server struct {
 	//服务器监听的port
 	Port int
 
-	//注册的router
-	Router iface.IRouter
+	//MsgHandle模块
+	MsgHandler iface.IMsgHandle
 }
 
 //提供一个初始化Server模块方法
 func NewServer(name string) iface.IServer {
 	s := &Server{
-		Name:      utils.GlobalObject.Name,
-		IPversion: "tcp4",
-		IP:        utils.GlobalObject.Host,
-		Port:      utils.GlobalObject.TcpPort,
-		Router:    nil,
+		Name:       utils.GlobalObject.Name,
+		IPversion:  "tcp4",
+		IP:         utils.GlobalObject.Host,
+		Port:       utils.GlobalObject.TcpPort,
+		MsgHandler: NewMsgHandle(),
 	}
 	return s
 }
@@ -68,7 +68,7 @@ func (s *Server) Start() {
 
 			//绑定连接的客户端，得到连接模块
 			//func(*net.TCPConn, []byte, int)
-			dealConn := NewConnection(conn, cid, s.Router)
+			dealConn := NewConnection(conn, cid, s.MsgHandler)
 			cid++
 
 			//启动当前的连接
@@ -93,7 +93,7 @@ func (s *Server) Serve() {
 }
 
 //添加路由: 给当前的server注册一个路由方法，供客户端的连接使用
-func (s *Server) AddRouter(router iface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgID uint32, router iface.IRouter) {
+	s.MsgHandler.AddRouter(msgID, router)
 	fmt.Println("Add Router succ")
 }

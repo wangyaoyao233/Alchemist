@@ -18,18 +18,18 @@ type Connection struct {
 	//等待连接被动退出的channel
 	ExitChan chan bool
 
-	//该连接的Router
-	Router iface.IRouter
+	//MsgHandle模块
+	MsgHandler iface.IMsgHandle
 }
 
 //初始化方法
-func NewConnection(conn *net.TCPConn, connID uint32, router iface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMsgHandle) *Connection {
 	c := &Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		isClosed: false,
-		ExitChan: make(chan bool),
-		Router:   router,
+		Conn:       conn,
+		ConnID:     connID,
+		isClosed:   false,
+		ExitChan:   make(chan bool),
+		MsgHandler: msgHandler,
 	}
 	return c
 }
@@ -74,12 +74,8 @@ func (conn *Connection) StartReader() {
 			conn: conn,
 			msg:  msg,
 		}
-		//调用注册的路由方法
-		go func(request iface.IRequest) {
-			conn.Router.PreHandle(request)
-			conn.Router.Handle(request)
-			conn.Router.PostHandle(request)
-		}(&req)
+		//调用消息的的路由方法
+		go conn.MsgHandler.DoMsgHandler(&req)
 
 	}
 }
