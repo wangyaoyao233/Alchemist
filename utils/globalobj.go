@@ -19,9 +19,11 @@ type GlobalObj struct {
 	Name string
 
 	//Alchemist框架
-	Version        string
-	MaxConn        int
-	MaxPackageSize uint32
+	Version          string
+	MaxConn          int
+	MaxPackageSize   uint32
+	WorkerPoolSize   uint32 //Worker池的Goroutine数量
+	MaxWorkerTaskLen uint32 //框架允许用户最多开辟多少个Worker
 }
 
 //定义一个全局的对外GlobalObj
@@ -31,12 +33,14 @@ var GlobalObject *GlobalObj
 func init() {
 	//如果配置文件没有加载，默认的值
 	GlobalObject = &GlobalObj{
-		Name:           "ServerApp",
-		Version:        "v0.0",
-		TcpPort:        9000,
-		Host:           "0.0.0.0",
-		MaxConn:        1000,
-		MaxPackageSize: 4096,
+		Name:             "ServerApp",
+		Version:          "v0.0",
+		TcpPort:          9000,
+		Host:             "0.0.0.0",
+		MaxConn:          1000,
+		MaxPackageSize:   4096,
+		WorkerPoolSize:   10,
+		MaxWorkerTaskLen: 1024,
 	}
 
 	//从conf.json加载用户自定义值

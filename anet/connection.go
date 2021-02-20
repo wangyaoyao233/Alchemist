@@ -2,6 +2,7 @@ package anet
 
 import (
 	"Alchemist/iface"
+	"Alchemist/utils"
 	"errors"
 	"fmt"
 	"io"
@@ -77,8 +78,15 @@ func (conn *Connection) StartReader() {
 			conn: conn,
 			msg:  msg,
 		}
-		//调用消息的的路由方法
-		go conn.MsgHandler.DoMsgHandler(&req)
+
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			//将request发送给MsgHandler的工作池
+			conn.MsgHandler.SendMsgToTaskQueue(&req)
+		} else {
+			//从路由中，找到注册绑定的Conn对应的Router调用
+			//从路由中，根据绑定好的MsgID, 找到对应api处理业务执行
+			go conn.MsgHandler.DoMsgHandler(&req)
+		}
 
 	}
 }
