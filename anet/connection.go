@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 )
 
 type Connection struct {
@@ -25,6 +26,11 @@ type Connection struct {
 
 	//MsgHandle模块
 	MsgHandler iface.IMsgHandle
+
+	//自定义连接属性集合
+	property map[string]interface{}
+	//保护连接属性的锁
+	propertyLock sync.RWMutex
 }
 
 //初始化方法
@@ -37,6 +43,7 @@ func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHa
 		ExitChan:   make(chan bool),
 		msgChan:    make(chan []byte),
 		MsgHandler: msgHandler,
+		property:   make(map[string]interface{}),
 	}
 
 	//将conn加入到ConnManager中
@@ -192,4 +199,32 @@ func (conn *Connection) SendMsg(msgId uint32, data []byte) error {
 	conn.msgChan <- binaryMsg
 
 	return nil
+}
+
+//添加自定义连接属性
+func (conn *Connection) SetProperty(key string, value interface{}) {
+	conn.propertyLock.Lock()
+	defer conn.propertyLock.Unlock()
+
+	conn.property[key] = value
+}
+
+//获取自定义连接属性
+func (conn *Connection) GetProperty(key string) (interface{}, error) {
+	conn.propertyLock.RLock()
+	defer conn.propertyLock.RUnlock()
+
+	if value, ok := conn.property[key]; ok {
+		return value, nil
+	} else {
+		return nil, errors.New("no property found")
+	}
+}
+
+//移除自定义连接属性
+func (conn *Connection) RemoveProperty(key string) {
+	conn.propertyLock.Lock()
+	defer conn.propertyLock.Unlock()
+
+	delete(conn.property, key)
 }
