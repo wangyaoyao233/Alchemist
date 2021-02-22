@@ -118,3 +118,94 @@ func (p *Player) Talk(content string) {
 	}
 
 }
+
+//同步玩家新上线的位置
+func (p *Player) SyncSurrounding() {
+	//1.获取当前玩家周围的玩家
+	players := p.GetSurroundingPlayers()
+
+	//2.将新玩家位置发给周围玩家
+	//2.1组建MsgId:200 proto数据
+	proto_msg := &pb.BroadCast{
+		Pid: p.Pid,
+		Tp:  2,
+		Data: &pb.BroadCast_P{
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+	//2.2发送给周围玩家
+	for _, player := range players {
+		player.SendMsg(200, proto_msg)
+	}
+
+	//3.将周围玩家位置发给新玩家
+	//3.1组建MsgId:202 proto数据
+	//3.1.1制作pb.Player slice
+	players_proto_msg := make([]*pb.Player, 0, len(players))
+	for _, player := range players {
+		//制作一个message Player
+		p_msg := &pb.Player{
+			Pid: player.Pid,
+			P: &pb.Position{
+				X: player.X,
+				Y: player.Y,
+				Z: player.Z,
+				V: player.V,
+			},
+		}
+		players_proto_msg = append(players_proto_msg, p_msg)
+	}
+
+	//3.1.2将玩家集合放在message SyncPlayer
+	sync_players_proto_msg := &pb.SyncPlayers{
+		Ps: players_proto_msg[:],
+	}
+	//3.2发送给新玩家
+	p.SendMsg(202, sync_players_proto_msg)
+}
+
+//广播并更新当前玩家的位置
+func (p *Player) UpdatePos(x, y, z, v float32) {
+	//1.更新当前玩家player对象的坐标
+	p.X = x
+	p.Y = y
+	p.Z = z
+	p.V = v
+	//2.组建MsgId:200,Tp=4的广播消息
+	proto_msg := &pb.BroadCast{
+		Pid: p.Pid,
+		Tp:  4,
+		Data: &pb.BroadCast_P{
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+	//获取当前玩家的周围玩家
+	players := p.GetSurroundingPlayers()
+	//给周围每个玩家发送广播消息
+	for _, player := range players {
+		player.SendMsg(200, proto_msg)
+	}
+}
+
+//获取当前玩家的周围九宫格玩家
+func (p *Player) GetSurroundingPlayers() []*Player {
+	//得到当前九宫格内所有玩家PID
+	pids := WorldMgrObj.AoiMgr.GetPidsByPos(p.X, p.Z)
+
+	players := make([]*Player, 0, len(pids))
+	for _, pid := range pids {
+		players = append(players, WorldMgrObj.GetPlayerByPid(int32(pid)))
+	}
+
+	return players
+}

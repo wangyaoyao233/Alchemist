@@ -24,6 +24,9 @@ func OnConnAdd(conn iface.IConnection) {
 	//将新玩家加入世界管理模块
 	core.WorldMgrObj.AddPlayer(player)
 
+	//同步新玩家位置(看见别人+别人看见我)
+	player.SyncSurrounding()
+
 }
 
 func main() {
@@ -35,6 +38,7 @@ func main() {
 
 	//注册路由
 	s.AddRouter(2, &apis.WorldChatApi{})
+	s.AddRouter(3, &apis.MoveApi{})
 
 	//启动
 	s.Serve()
