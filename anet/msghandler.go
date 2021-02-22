@@ -30,6 +30,7 @@ func (mh *MsgHandle) DoMsgHandler(request iface.IRequest) {
 	handle, ok := mh.Apis[request.GetMsgID()]
 	if !ok {
 		fmt.Println("api msgID: ", request.GetMsgID(), "is not found")
+		return
 	}
 	//2.根据msgID调度对应的router
 	handle.PreHandle(request)
