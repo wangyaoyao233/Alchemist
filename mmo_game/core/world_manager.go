@@ -52,11 +52,6 @@ func (wm *WorldManager) AddPlayer(p *Player) {
 
 //删除玩家,通过Pid
 func (wm *WorldManager) RemovePlayerByPid(pid int32) {
-	//得到当前玩家
-	player := wm.Players[pid]
-	//将player从AOIManager中移除
-	wm.AoiMgr.RemoveFromGridByPos(int(pid), player.X, player.Z)
-
 	wm.pLock.Lock()
 	delete(wm.Players, pid)
 	wm.pLock.Unlock()
@@ -79,6 +74,22 @@ func (wm *WorldManager) GetAllPlayers() []*Player {
 	for _, p := range wm.Players {
 		players = append(players, p)
 	}
+
+	return players
+}
+
+//获取指定gid中的所有player信息
+func (wm *WorldManager) GetPlayersByPid(gid int) []*Player {
+	//通过gid获取对应格子中的所有pid
+	pids := wm.AoiMgr.grids[gid].GetPlayerIDs()
+
+	//通过pid找到对应的player对象
+	players := make([]*Player, 0, len(pids))
+	wm.pLock.RLock()
+	for _, pid := range pids {
+		players = append(players, wm.Players[int32(pid)])
+	}
+	wm.pLock.RUnlock()
 
 	return players
 }

@@ -76,7 +76,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan iface.IRequest)
 func (mh *MsgHandle) SendMsgToTaskQueue(request iface.IRequest) {
 	//1.平均分配给不同Worker
 	id := request.GetConnection().GetConnID() % mh.WorkerPoolSize
-	fmt.Println("Add connID=", request.GetConnection().GetConnID(), "request MsgID:", request.GetMsgID(), "to WorkerID:", id)
+	//fmt.Println("Add connID=", request.GetConnection().GetConnID(), "request MsgID:", request.GetMsgID(), "to WorkerID:", id)
 
 	//2.将消息发送给对应的worker的TaskQueue
 	mh.TaskQueue[id] <- request

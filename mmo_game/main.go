@@ -16,17 +16,30 @@ func OnConnAdd(conn iface.IConnection) {
 	player.SyncPid()
 	//给客户端发送MsgID:200的消息:同步当前Player的初始位置给客户端
 	player.BroadCastStartPosition()
-	fmt.Println("====>Player ID:", player.Pid, "is arrived..")
-
-	//将该链接绑定一个pid, 玩家ID的属性
-	conn.SetProperty("pid", player.Pid)
 
 	//将新玩家加入世界管理模块
 	core.WorldMgrObj.AddPlayer(player)
 
+	//将该链接绑定一个pid, 玩家ID的属性
+	conn.SetProperty("pid", player.Pid)
+
 	//同步新玩家位置(看见别人+别人看见我)
 	player.SyncSurrounding()
 
+	fmt.Println("====>Player ID:", player.Pid, "is arrived..")
+
+}
+
+func OnConnStop(conn iface.IConnection) {
+	//通过连接属性获得当前连接说绑定的pid
+	pid, _ := conn.GetProperty("pid")
+	player := core.WorldMgrObj.GetPlayerByPid(pid.(int32))
+
+	//玩家下线业务(给周围玩家广播MsgId:201)
+	if pid != nil {
+		player.Offline()
+	}
+	fmt.Println("====>Player pid:", pid, "offline...")
 }
 
 func main() {
@@ -35,6 +48,7 @@ func main() {
 
 	//注册连接的创建和销毁的hook函数
 	s.SetOnConnStart(OnConnAdd)
+	s.SetOnConnStop(OnConnStop)
 
 	//注册路由
 	s.AddRouter(2, &apis.WorldChatApi{})

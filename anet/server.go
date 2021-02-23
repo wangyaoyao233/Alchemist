@@ -76,6 +76,7 @@ func (s *Server) Start() {
 				fmt.Println("AcceptTcp err", err)
 				continue
 			}
+			fmt.Println("Get Conn remote addr =", conn.RemoteAddr().String())
 
 			//设置最大的连接个数，如果超过最大连接，那么关闭新的连接
 			if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {

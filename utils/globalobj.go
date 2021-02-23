@@ -24,6 +24,7 @@ type GlobalObj struct {
 	MaxPackageSize   uint32
 	WorkerPoolSize   uint32 //Worker池的Goroutine数量
 	MaxWorkerTaskLen uint32 //框架允许用户最多开辟多少个Worker
+	MaxMsgChanLen    uint32 //SendBuffMsg缓冲的最大长度
 }
 
 //定义一个全局的对外GlobalObj
@@ -41,6 +42,7 @@ func init() {
 		MaxPackageSize:   4096,
 		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
+		MaxMsgChanLen:    1024,
 	}
 
 	//从conf.json加载用户自定义值
@@ -48,12 +50,12 @@ func init() {
 }
 
 func (g *GlobalObj) Reload() {
-	data, err := ioutil.ReadFile("conf/conf.json")
+	data, err := ioutil.ReadFile("conf/setting.json")
 	if err != nil {
 		panic(err)
 	}
 	//将json文件解析到struct中
-	err = json.Unmarshal(data, &GlobalObject)
+	err = json.Unmarshal(data, g)
 	if err != nil {
 		panic(err)
 	}

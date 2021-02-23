@@ -28,11 +28,13 @@ func (m *MoveApi) Handle(request iface.IRequest) {
 	pid, err := request.GetConnection().GetProperty("pid")
 	if err != nil {
 		fmt.Println("GetProperty pid error", err)
+		request.GetConnection().Stop()
 		return
 	}
 	fmt.Printf("Player pid:%d,move(%f,%f,%f,%f)\n", pid, proto_msg.X, proto_msg.Y, proto_msg.Z, proto_msg.V)
 
 	//将当前玩家的位置广播给周围玩家
 	player := core.WorldMgrObj.GetPlayerByPid(pid.(int32))
+
 	player.UpdatePos(proto_msg.X, proto_msg.Y, proto_msg.Z, proto_msg.V)
 }

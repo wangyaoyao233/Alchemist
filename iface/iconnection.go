@@ -14,8 +14,10 @@ type IConnection interface {
 	GetConnID() uint32
 	//获取客户端连接的地址和端口
 	GetRemoteAddr() net.Addr
-	//发送数据的方法
-	SendMsg(uint32, []byte) error
+	//发送数据的方法,无缓冲
+	SendMsg(msgId uint32, data []byte) error
+	//直接将Message数据发送给远程的TCP客户端(有缓冲)
+	SendBuffMsg(msgId uint32, data []byte) error
 
 	//添加自定义连接属性
 	SetProperty(key string, value interface{})

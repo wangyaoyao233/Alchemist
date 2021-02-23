@@ -28,17 +28,21 @@ func (connMgr *ConnManager) Add(conn iface.IConnection) {
 
 	//将conn加入map
 	connMgr.connections[int(conn.GetConnID())] = conn
+
 	fmt.Println("connID =", conn.GetConnID(), "add to ConnManager successfully: conn num:", connMgr.Len())
 }
+
 func (connMgr *ConnManager) Remove(conn iface.IConnection) {
 	//保护共享资源map，加写锁
 	connMgr.connLock.Lock()
 	defer connMgr.connLock.Unlock()
 
+	//删除连接信息
 	delete(connMgr.connections, int(conn.GetConnID()))
 
 	fmt.Println("connID =", conn.GetConnID(), "remove from ConnManager succ: conn num:", connMgr.Len())
 }
+
 func (connMgr *ConnManager) Get(connID int) (iface.IConnection, error) {
 	//保护共享资源map，加读锁
 	connMgr.connLock.RLock()
@@ -50,9 +54,11 @@ func (connMgr *ConnManager) Get(connID int) (iface.IConnection, error) {
 		return nil, errors.New("connection not found")
 	}
 }
+
 func (connMgr *ConnManager) Len() int {
 	return len(connMgr.connections)
 }
+
 func (connMgr *ConnManager) Clear() {
 	//保护共享资源map，加写锁
 	connMgr.connLock.Lock()
