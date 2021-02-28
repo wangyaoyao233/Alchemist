@@ -19,7 +19,7 @@ type MsgHandle struct {
 func NewMsgHandle() *MsgHandle {
 	return &MsgHandle{
 		Apis:           make(map[uint32]iface.IRouter),
-		TaskQueue:      make([]chan iface.IRequest, int(utils.GlobalObject.WorkerPoolSize)),
+		TaskQueue:      make([]chan iface.IRequest, utils.GlobalObject.WorkerPoolSize),
 		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
 	}
 }
@@ -54,7 +54,7 @@ func (mh *MsgHandle) StartWorkerPool() {
 	//根据WorkerPoolSize分别开启Worker，每个Worker用一个go
 	for i := 0; i < int(mh.WorkerPoolSize); i++ {
 		//1.给当前的worker对应的消息队列开辟空间
-		mh.TaskQueue[i] = make(chan iface.IRequest, int(utils.GlobalObject.MaxWorkerTaskLen))
+		mh.TaskQueue[i] = make(chan iface.IRequest, utils.GlobalObject.MaxWorkerTaskLen)
 		//2.启动当前的Worker,阻塞等待消息从channel传递进来
 		go mh.StartOneWorker(i, mh.TaskQueue[i])
 	}

@@ -19,6 +19,8 @@ type Connection struct {
 	//连接的ID
 	ConnID uint32
 
+	//MsgHandle模块
+	MsgHandler iface.IMsgHandle
 	//告知该链接已经退出/停止的channel
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -29,8 +31,6 @@ type Connection struct {
 	msgBuffChan chan []byte
 
 	sync.RWMutex
-	//MsgHandle模块
-	MsgHandler iface.IMsgHandle
 	//自定义连接属性集合
 	property map[string]interface{}
 	//保护连接属性的锁

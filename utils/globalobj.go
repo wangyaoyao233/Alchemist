@@ -18,7 +18,7 @@ type GlobalObj struct {
 	//当前服务器名称
 	Name string
 
-	//Alchemist框架
+	//框架
 	Version          string
 	MaxConn          int
 	MaxPackageSize   uint32
@@ -36,7 +36,7 @@ func init() {
 	GlobalObject = &GlobalObj{
 		Name:             "ServerApp",
 		Version:          "v0.0",
-		TcpPort:          9000,
+		TcpPort:          8999,
 		Host:             "0.0.0.0",
 		MaxConn:          1000,
 		MaxPackageSize:   4096,

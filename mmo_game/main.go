@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func OnConnAdd(conn iface.IConnection) {
+func OnConnectionAdd(conn iface.IConnection) {
 	//创建一个Player对象
 	player := core.NewPlayer(conn)
 
@@ -30,7 +30,7 @@ func OnConnAdd(conn iface.IConnection) {
 
 }
 
-func OnConnStop(conn iface.IConnection) {
+func OnConnectionLost(conn iface.IConnection) {
 	//通过连接属性获得当前连接说绑定的pid
 	pid, _ := conn.GetProperty("pid")
 	player := core.WorldMgrObj.GetPlayerByPid(pid.(int32))
@@ -47,8 +47,8 @@ func main() {
 	s := anet.NewServer("MMO Game Server")
 
 	//注册连接的创建和销毁的hook函数
-	s.SetOnConnStart(OnConnAdd)
-	s.SetOnConnStop(OnConnStop)
+	s.SetOnConnStart(OnConnectionAdd)
+	s.SetOnConnStop(OnConnectionLost)
 
 	//注册路由
 	s.AddRouter(2, &apis.WorldChatApi{})

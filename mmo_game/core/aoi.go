@@ -114,7 +114,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 		}
 	}
 
-	return grids
+	return
 }
 
 //通过x,y坐标得到当前的GID格子编号

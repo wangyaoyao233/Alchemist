@@ -16,9 +16,9 @@ type IServer interface {
 	GetConnMgr() IConnManager
 
 	//注册连接之间的hook函数
-	SetOnConnStart(func(conn IConnection))
+	SetOnConnStart(func(IConnection))
 	//注册连接销毁之前的hook函数
-	SetOnConnStop(func(conn IConnection))
+	SetOnConnStop(func(IConnection))
 	//调用hook函数
 	CallOnConnStart(conn IConnection)
 	CallOnConnStop(conn IConnection)

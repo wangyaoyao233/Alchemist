@@ -4,7 +4,7 @@ package iface
 type IConnManager interface {
 	Add(conn IConnection)
 	Remove(conn IConnection)
-	Get(connID int) (IConnection, error)
+	Get(connID uint32) (IConnection, error)
 	Len() int
 	Clear()
 }

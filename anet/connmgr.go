@@ -9,7 +9,7 @@ import (
 
 type ConnManager struct {
 	//管理的连接集合
-	connections map[int]iface.IConnection
+	connections map[uint32]iface.IConnection
 	//保护连接集合的读写锁
 	connLock sync.RWMutex
 }
@@ -17,7 +17,7 @@ type ConnManager struct {
 //创建当前管理模块方法
 func NewConnManager() *ConnManager {
 	return &ConnManager{
-		connections: make(map[int]iface.IConnection),
+		connections: make(map[uint32]iface.IConnection),
 	}
 }
 
@@ -27,7 +27,7 @@ func (connMgr *ConnManager) Add(conn iface.IConnection) {
 	defer connMgr.connLock.Unlock()
 
 	//将conn加入map
-	connMgr.connections[int(conn.GetConnID())] = conn
+	connMgr.connections[conn.GetConnID()] = conn
 
 	fmt.Println("connID =", conn.GetConnID(), "add to ConnManager successfully: conn num:", connMgr.Len())
 }
@@ -38,12 +38,12 @@ func (connMgr *ConnManager) Remove(conn iface.IConnection) {
 	defer connMgr.connLock.Unlock()
 
 	//删除连接信息
-	delete(connMgr.connections, int(conn.GetConnID()))
+	delete(connMgr.connections, conn.GetConnID())
 
 	fmt.Println("connID =", conn.GetConnID(), "remove from ConnManager succ: conn num:", connMgr.Len())
 }
 
-func (connMgr *ConnManager) Get(connID int) (iface.IConnection, error) {
+func (connMgr *ConnManager) Get(connID uint32) (iface.IConnection, error) {
 	//保护共享资源map，加读锁
 	connMgr.connLock.RLock()
 	defer connMgr.connLock.RUnlock()

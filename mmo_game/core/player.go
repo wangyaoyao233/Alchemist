@@ -249,15 +249,15 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 
 	//获取需要消失的格子中的全部玩家
 	for _, grid := range leavingGrids {
-		players := WorldMgrObj.GetPlayersByPid(grid.GID)
+		players := WorldMgrObj.GetPlayersByGid(grid.GID)
 		for _, player := range players {
 			//让自己在其他玩家的客户端消失
 			player.SendMsg(201, offlineMsg)
 			//将其他玩家信息 在自己的客户端中消失
-			anotherOfflenMsg := &pb.SyncPid{
+			anotherOfflineMsg := &pb.SyncPid{
 				Pid: player.Pid,
 			}
-			p.SendMsg(201, anotherOfflenMsg)
+			p.SendMsg(201, anotherOfflineMsg)
 			time.Sleep(200 * time.Millisecond)
 		}
 	}
@@ -286,7 +286,7 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 
 	//获取需要显示格子的全部玩家
 	for _, grid := range enteringGrids {
-		players := WorldMgrObj.GetPlayersByPid(grid.GID)
+		players := WorldMgrObj.GetPlayersByGid(grid.GID)
 
 		for _, player := range players {
 			//让自己出现在其他人视野中

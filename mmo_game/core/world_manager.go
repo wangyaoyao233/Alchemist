@@ -79,7 +79,7 @@ func (wm *WorldManager) GetAllPlayers() []*Player {
 }
 
 //获取指定gid中的所有player信息
-func (wm *WorldManager) GetPlayersByPid(gid int) []*Player {
+func (wm *WorldManager) GetPlayersByGid(gid int) []*Player {
 	//通过gid获取对应格子中的所有pid
 	pids := wm.AoiMgr.grids[gid].GetPlayerIDs()
 

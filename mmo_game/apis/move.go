@@ -15,7 +15,7 @@ type MoveApi struct {
 	anet.BaseRouter
 }
 
-func (m *MoveApi) Handle(request iface.IRequest) {
+func (*MoveApi) Handle(request iface.IRequest) {
 	//1.解析客户端传递进来的proto协议
 	proto_msg := &pb.Position{}
 	err := proto.Unmarshal(request.GetData(), proto_msg)

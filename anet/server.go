@@ -12,7 +12,7 @@ type Server struct {
 	//服务器的名称
 	Name string
 	//服务器绑定的ip版本
-	IPversion string
+	IPVersion string
 	//服务器监听的ip
 	IP string
 	//服务器监听的port
@@ -33,7 +33,7 @@ type Server struct {
 func NewServer(name string) iface.IServer {
 	s := &Server{
 		Name:       utils.GlobalObject.Name,
-		IPversion:  "tcp4",
+		IPVersion:  "tcp4",
 		IP:         utils.GlobalObject.Host,
 		Port:       utils.GlobalObject.TcpPort,
 		MsgHandler: NewMsgHandle(),
@@ -44,22 +44,21 @@ func NewServer(name string) iface.IServer {
 
 //启动服务器
 func (s *Server) Start() {
-	fmt.Printf("[conf] Server Name:%s, IP:%s, Port:%d\n", utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TcpPort)
-	fmt.Printf("[conf] Version:%s, MaxConn:%d, MaxPackageSize:%d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
+	fmt.Printf("[Start] Server name:%s, listenner at IP:%s, Port %d \n", s.Name, s.IP, s.Port)
 
 	go func() {
 		//0.开启消息队列及Worker工作池
 		s.MsgHandler.StartWorkerPool()
 
 		//1.获取一个TCP的Addr
-		addr, err := net.ResolveTCPAddr(s.IPversion, fmt.Sprintf("%s:%d", s.IP, s.Port))
+		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
 			fmt.Println("Resolve tcp addr error", err)
 			return
 		}
 
 		//2.监听服务器的地址
-		listener, err := net.ListenTCP(s.IPversion, addr)
+		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
 			fmt.Println("listen error", err)
 			return
@@ -116,7 +115,6 @@ func (s *Server) Serve() {
 //添加路由: 给当前的server注册一个路由方法，供客户端的连接使用
 func (s *Server) AddRouter(msgID uint32, router iface.IRouter) {
 	s.MsgHandler.AddRouter(msgID, router)
-	fmt.Println("Add Router succ")
 }
 
 //获取ConnMgr连接管理器方法

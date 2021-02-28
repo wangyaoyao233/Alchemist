@@ -15,7 +15,7 @@ type WorldChatApi struct {
 	anet.BaseRouter
 }
 
-func (wc *WorldChatApi) Handle(request iface.IRequest) {
+func (*WorldChatApi) Handle(request iface.IRequest) {
 	//1.解析客户端传进来的proto协议
 	proto_msg := &pb.Talk{}
 	err := proto.Unmarshal(request.GetData(), proto_msg)
